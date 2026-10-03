@@ -1,0 +1,35 @@
+name: Bootstrap SchoolSafe Bolt Work v2
+
+on:
+  workflow_dispatch:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: write
+
+jobs:
+  bootstrap:
+    if: github.event_name == 'workflow_dispatch' || github.event.issue.title == 'BOOTSTRAP_BOLT_REPO_V2'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout destination
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Clone prepared SchoolSafe branch
+        run: |
+          git clone --depth 1 --branch bolt/schoolsafe-work-v1 https://github.com/medygoo/schoolsafe-stable.git /tmp/schoolsafe-source
+
+      - name: Replace destination contents
+        run: |
+          rsync -a --delete --exclude='.git' --exclude='.github/workflows' /tmp/schoolsafe-source/ ./
+
+      - name: Commit imported project
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "chore: import SchoolSafe Bolt working branch"
+          git push origin HEAD:main
